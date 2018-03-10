@@ -36,7 +36,7 @@ object DataProcessor {
   def setSparkConfigParams() = {
     sparkConf.setAppName(conf.getString("application.app-name"))
     var sparkStreamingConf = conf.getStringList("application.spark-streaming")
-    sparkStreamingConf.forEach { x => val split = x.split("="); sparkConf.set(split(0), split(1)); }
+    //sparkStreamingConf.forEach { x => val split = x.split("="); sparkConf.set(split(0), split(1)); }
     sparkConf.set("spark.driver.extraJavaOptions",conf.getString("application.event-driver-options"))
     sparkConf.set("spark.executor.extraJavaOptions", conf.getString("application.event-executor-options"))
   }
