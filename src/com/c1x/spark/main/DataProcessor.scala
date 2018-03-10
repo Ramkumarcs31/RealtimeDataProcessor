@@ -34,7 +34,7 @@ object DataProcessor {
   }
 
   def setSparkConfigParams() = {
-    conf.setAppName(conf.getString("application.app-name-event"))
+    sparkConf.setAppName(conf.getString("application.app-name-event"))
     var sparkStreamingConf = conf.getStringList("application.spark-streaming-event")
     sparkStreamingConf.forEach { x => val split = x.split("="); sparkConf.set(split(0), split(1)); }
     sparkConf.set("spark.driver.extraJavaOptions",conf.getString("application.event-driver-options"))
@@ -44,6 +44,7 @@ object DataProcessor {
   def setupSsc(
                 topicsSet: Set[String],
                 kafkaParams: Map[String, String])(): StreamingContext = {
+    val sc = new SparkContext(sparkConf)
     val ssc = new StreamingContext(sc, Seconds(conf.getInt("application.sparkbatchinterval")))
     ssc
   }
