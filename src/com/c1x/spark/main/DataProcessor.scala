@@ -17,7 +17,7 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
 
 
 object DataProcessor {
-  var parsedConfig = ConfigFactory.parseFile(new File("../../../../main/resources/application.conf"))
+  var parsedConfig = ConfigFactory.parseFile(new File("/home/ubuntu/RealtimeDataProcessor/src/main/resources/application.conf"))
   private var conf = ConfigFactory.load(parsedConfig)
   var sparkConf = new SparkConf()
   def main(args: Array[String]): Unit = {
