@@ -57,6 +57,8 @@ object DataProcessor {
     val zookeeper_host = conf.getString("application.zookeeper_host")
     val kafkaOffsetZookeeperNode = conf.getString("application.kafka_offset_zookeeper_node")
     val messages = createCustomDirectKafkaStream(ssc, kafkaParams, zookeeper_host, kafkaOffsetZookeeperNode, topicsSet)
+    val line = messages.map(_._2)
+    print(line)
     ssc
   }
 
