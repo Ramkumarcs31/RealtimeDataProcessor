@@ -35,7 +35,7 @@ object DataProcessor {
     //  setting spark conf parameters
     setSparkConfigParams()
     var Array(brokers, topics) = args
-    var kafkaParams = Map[String, String]("metadata.broker.list" -> brokers)
+    var kafkaParams = Map[String, String]("metadata.broker.list" -> brokers,"advertised.host.name"->"kafka")
     var topicsSet = topics.split(",").toSet
     var ssc = setupSsc(topicsSet, kafkaParams)
 
