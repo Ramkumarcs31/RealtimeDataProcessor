@@ -35,9 +35,13 @@ object DataProcessor {
     //  setting spark conf parameters
     setSparkConfigParams()
     var Array(brokers, topics) = args
-    var kafkaParams = Map[String, String]("metadata.broker.list" -> brokers,"advertised.host.name"->"kafka")
+    print(brokers)
+    var kafkaParams = Map[String, String]("metadata.broker.list" -> "kafka:9092","advertised.host.name"->"kafka")
     var topicsSet = topics.split(",").toSet
     var ssc = setupSsc(topicsSet, kafkaParams)
+    /* Start the spark streaming   */
+    ssc.start()
+    ssc.awaitTermination()
 
   }
 
