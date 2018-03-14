@@ -26,13 +26,13 @@ object DataProcessor {
   var parsedConfig = ConfigFactory.parseFile(new File("/home/ubuntu/RealtimeDataProcessor/src/main/resources/application.conf"))
   private var conf = ConfigFactory.load(parsedConfig)
   var sparkConf = new SparkConf()
-  case class bid(width: Integer, height: Integer, lat: Double, lon: Double, forwardUrl: String, imageUrl: String, impid: String, adid: String, seat: String, crid: String, domain: String, xtime: Integer, oidStr: String, exchange: String, cost: Double, timestamp: Long, origin: String, adtype: String,/* type: String, */noBid: Boolean, responseBuffer: String, nurl: String, serialClass: String)
+  case class bid(width: Int, height: Int, lat: Double, lon: Double, forwardUrl: String, imageUrl: String, impid: String, adid: String, seat: String, crid: String, domain: String, xtime: Int, oidStr: String, exchange: String, cost: Double, timestamp: Long, origin: String, adtype: String,/* type: String, */noBid: Boolean, responseBuffer: String, nurl: String, serialClass: String)
   implicit val bidReads = Json.format[bid]
 
   case class win(hash: String, cost: String, lat: String, lon: String, adId: String, pubId: String, forward: String, price: String, cridId: String, adm: String, adtype: String, domain: String, bidtype: String, timestamp: Long, origin: String,/* type: String, */serialClass: String)
   implicit val winReads = Json.format[win]
 
-  case class clk(payload: String, lat: Double, lon: Double, price: Double, timestamp: Long /*,type: Integer*/, ad_id: String, creative_id: String, bid_id: String, debug: Boolean, x: Integer, y: Integer, exchange: String, domain: String, bidtype: String, userId: String, deviceId: String, userProfile: String, serialClass: String)
+  case class clk(payload: String, lat: Double, lon: Double, price: Double, timestamp: Long /*,type: Int*/, ad_id: String, creative_id: String, bid_id: String, debug: Boolean, x: Int, y: Int, exchange: String, domain: String, bidtype: String, userId: String, deviceId: String, userProfile: String, serialClass: String)
   implicit val clkReads = Json.format[clk]
 
   case class bidWin(isWin: Boolean, bid: bid, win: Option[win])

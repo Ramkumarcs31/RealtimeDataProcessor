@@ -107,7 +107,7 @@
         <!-- https://mvnrepository.com/artifact/com.typesafe.play/play-json -->
         <dependency>
             <groupId>com.typesafe.play</groupId>
-            <artifactId>play-json_2.10</artifactId>
+            <artifactId>play-json_2.11</artifactId>
             <version>2.6.9</version>
         </dependency>
     </dependencies>
