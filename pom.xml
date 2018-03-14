@@ -108,7 +108,14 @@
         <dependency>
             <groupId>com.typesafe.play</groupId>
             <artifactId>play-json_2.11</artifactId>
-            <version>2.6.9</version>
+            <version>2.6.8</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.typesafe.play/play-functional -->
+        <dependency>
+            <groupId>com.typesafe.play</groupId>
+            <artifactId>play-functional_2.11</artifactId>
+            <version>2.6.8</version>
+        </dependency>
+
     </dependencies>
 </project>

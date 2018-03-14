@@ -17,7 +17,6 @@ import org.apache.spark.streaming.dstream.InputDStream
 import org.apache.spark.streaming.kafka.{HasOffsetRanges, KafkaUtils}
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import play.api.libs.json._
-import play.api.libs.functional.syntax._
 
 import com.google.gson.Gson
 
