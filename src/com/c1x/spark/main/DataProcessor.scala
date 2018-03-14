@@ -15,9 +15,8 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.dstream.InputDStream
 import org.apache.spark.streaming.kafka.{HasOffsetRanges, KafkaUtils}
-import org.apache.spark.streaming.{Seconds, StreamingContext}
+import org.apache.spark.streaming.{Minutes, Seconds, StreamingContext}
 import play.api.libs.json._
-
 import com.google.gson.Gson
 
 
@@ -98,7 +97,8 @@ object DataProcessor {
       val bidWinObj = bidWin(adInfo._2._2!=null , adInfo._2._1, adInfo._2._2)
       gson.toJson(bidWinObj)
     })
-    bidWinJoin.saveAsTextFiles("file:///home/ubuntu/request","txt")
+    //bidWinJoin.saveAsTextFiles("file:///home/ubuntu/request","txt")
+    ssc.remember(Minutes(5))
       ssc
   }
 
