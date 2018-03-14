@@ -9,17 +9,37 @@ import kafka.message.MessageAndMetadata
 import kafka.serializer.StringDecoder
 import kafka.utils.ZkUtils
 import org.I0Itec.zkclient.ZkClient
+import org.apache.spark
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.dstream.InputDStream
 import org.apache.spark.streaming.kafka.{HasOffsetRanges, KafkaUtils}
 import org.apache.spark.streaming.{Seconds, StreamingContext}
+import play.api.libs.json._
+import play.api.libs.functional.syntax._
+
+import com.google.gson.Gson
 
 
 object DataProcessor {
   var parsedConfig = ConfigFactory.parseFile(new File("/home/ubuntu/RealtimeDataProcessor/src/main/resources/application.conf"))
   private var conf = ConfigFactory.load(parsedConfig)
   var sparkConf = new SparkConf()
+  case class bid(width: Integer, height: Integer, lat: Double, lon: Double, forwardUrl: String, imageUrl: String, impid: String, adid: String, seat: String, crid: String, domain: String, xtime: Integer, oidStr: String, exchange: String, cost: Double, timestamp: Long, origin: String, adtype: String,/* type: String, */noBid: Boolean, responseBuffer: String, nurl: String, serialClass: String)
+  implicit val bidReads = Json.format[bid]
+
+  case class win(hash: String, cost: String, lat: String, lon: String, adId: String, pubId: String, forward: String, price: String, cridId: String, adm: String, adtype: String, domain: String, bidtype: String, timestamp: Long, origin: String,/* type: String, */serialClass: String)
+  implicit val winReads = Json.format[win]
+
+  case class clk(payload: String, lat: Double, lon: Double, price: Double, timestamp: Long /*,type: Integer*/, ad_id: String, creative_id: String, bid_id: String, debug: Boolean, x: Integer, y: Integer, exchange: String, domain: String, bidtype: String, userId: String, deviceId: String, userProfile: String, serialClass: String)
+  implicit val clkReads = Json.format[clk]
+
+  case class bidWin(isWin: Boolean, bid: bid, win: Option[win])
+
+  var gson = new Gson
+
+
   def main(args: Array[String]): Unit = {
     if (args.length < 2) {import org.apache.spark.streaming.{Seconds, StreamingContext}
 
@@ -37,8 +57,15 @@ object DataProcessor {
     var Array(brokers, topics) = args
     print(brokers)
     var kafkaParams = Map[String, String]("metadata.broker.list" -> "kafka:9092","advertised.host.name"->"kafka")
-    var topicsSet = topics.split(",").toSet
-    var ssc = setupSsc(topicsSet, kafkaParams)
+    //val topicsSet = topics.split(",").toSet
+    val reqTopicSet = "requests".split("").toSet
+    val bidTopicSet = "bids".split("").toSet
+    val winTopicSet = "wins".split("").toSet
+    val clkTopicSet = "clicks".split("").toSet
+    //val ssc = StreamingContext.getOrCreate(checkpointDir, setupSsc(topicsSet, kafkaParams, checkpointDir, memConInfo2,msc) _)
+    // val ssc = setupSsc(topicsSet, kafkaParams)
+    val ssc = setupSsc(reqTopicSet,bidTopicSet,winTopicSet,clkTopicSet, kafkaParams)
+    //var ssc = setupSsc(topicsSet, kafkaParams)
     /* Start the spark streaming   */
     ssc.start()
     ssc.awaitTermination()
@@ -54,16 +81,26 @@ object DataProcessor {
   }
 
   def setupSsc(
-                topicsSet: Set[String],
+                reqtopicsSet: Set[String],bidtopicsSet: Set[String],wintopicsSet: Set[String],clktopicsSet: Set[String],
                 kafkaParams: Map[String, String])(): StreamingContext = {
     val sc = new SparkContext(sparkConf)
     val ssc = new StreamingContext(sc, Seconds(conf.getInt("application.sparkbatchinterval")))
     val zookeeper_host = conf.getString("application.zookeeper_host")
     val kafkaOffsetZookeeperNode = conf.getString("application.kafka_offset_zookeeper_node")
-    val messages = createCustomDirectKafkaStream(ssc, kafkaParams, zookeeper_host, kafkaOffsetZookeeperNode, topicsSet)
-    val line = messages.map(_._2)
-    print(line)
-    ssc
+    val reqMessages = createCustomDirectKafkaStream(ssc, kafkaParams, zookeeper_host, kafkaOffsetZookeeperNode, reqtopicsSet)
+    val bidMessages = createCustomDirectKafkaStream(ssc, kafkaParams, zookeeper_host, kafkaOffsetZookeeperNode, bidtopicsSet)
+    val winMessages = createCustomDirectKafkaStream(ssc, kafkaParams, zookeeper_host, kafkaOffsetZookeeperNode, wintopicsSet)
+    val clkMessages = createCustomDirectKafkaStream(ssc, kafkaParams, zookeeper_host, kafkaOffsetZookeeperNode, clktopicsSet)
+    val parsedbid = bidMessages.map(_._2).map(Json.parse(_)).flatMap(record => bidReads.reads(record).asOpt).map(event => (event.oidStr, event ) )
+    val parsedwin = winMessages.map(_._2).map(Json.parse(_)).flatMap(record => winReads.reads(record).asOpt).map(event => (event.hash, event ) )
+    val parsedclk = clkMessages.map(_._2).map(Json.parse(_)).flatMap(record => clkReads.reads(record).asOpt).map(event => (event.bid_id, event ) )
+
+    val bidWinJoin = parsedbid.leftOuterJoin(parsedwin).map(adInfo => {
+      val bidWinObj = bidWin(adInfo._2._2!=null , adInfo._2._1, adInfo._2._2)
+      gson.toJson(bidWinObj)
+    })
+    bidWinJoin.saveAsTextFiles("file:///home/ubuntu/request","txt")
+      ssc
   }
 
   def createCustomDirectKafkaStream(ssc: StreamingContext, kafkaParams: Map[String, String], zkHosts: String, zkPath: String,
